@@ -75,10 +75,12 @@ async def on_message(message: discord.Message):
     content :str = ''
     if message.content.startswith('すや、'):
         content = message.content[3:]
-    elif message.content.startswith(client.user.id):
+    elif message.content.startswith(f'<@!{client.user.id}>'):
         content = message.content[len(client.user.id)+1:]
+    else:
+        return
     res = co.chat(
-        message=content,
+        message=f'name:{message.author.name},id:{message.author.id}\n{content}',
         model="command-r-08-2024",
         preamble=preamble,
         chat_history=history
