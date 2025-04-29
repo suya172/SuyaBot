@@ -9,6 +9,7 @@ from discord import app_commands
 from discord.app_commands import describe
 from discord.ext import tasks
 from typing import List, Union
+import random
 
 # Cohereに関する変数
 co = cohere.Client(api_key=COHERE_TOKEN, client_name="SuyaBot")
@@ -64,6 +65,9 @@ async def register(ctx: discord.Interaction):
 async def check_time():
     now = datetime.now(pytz.timezone("Asia/Tokyo"))
     if now.minute == 0 and now.hour == 0:
+        with open('emoticon.txt', 'r', encoding='utf-8') as f:
+            emoticons = f.readlines()
+        emoticon = random.choice(emoticons).strip()
         await send_message('今日も一日お疲れ様！')
 
 @client.event
