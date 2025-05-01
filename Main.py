@@ -68,7 +68,7 @@ async def check_time():
         with open('emoticon.txt', 'r', encoding='utf-8') as f:
             emoticons = f.readlines()
         emoticon = random.choice(emoticons).strip()
-        await send_message('今日も一日お疲れ様！')
+        await send_message('今日も一日お疲れ様！' + emoticon)
 
 @client.event
 async def on_message(message: discord.Message):
