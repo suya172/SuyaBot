@@ -1,0 +1,4 @@
+nohup: ignoring input
+[2025-12-31 22:34:02] [INFO    ] discord.client: logging in using static token
+[2025-12-31 22:34:04] [INFO    ] discord.gateway: Shard ID None has connected to Gateway (Session ID: c059cc6e4efd7bb44e8327492dbbdea5).
+[2025-12-31 22:54:52] [INFO    ] discord.gateway: Shard ID None has successfully RESUMED session c059cc6e4efd7bb44e8327492dbbdea5.

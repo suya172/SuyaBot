@@ -1,7 +1,6 @@
 from datetime import datetime, timedelta
 import pytz
 import cohere
-from cohere import UserMessage, ChatbotMessage
 from Config import DISCORD_TOKEN, COHERE_TOKEN, DEBUG_CHANNEL_ID
 import pickle
 import discord
@@ -20,9 +19,10 @@ intents.message_content = True
 client = discord.Client(intents=intents)
 tree = app_commands.CommandTree(client)
 
-history: List[Union[UserMessage, ChatbotMessage]] = []
+history = []
 channels: List[int] = []
-preamble: str = open('preamble.txt', 'r', encoding='utf-8').read()
+# preamble: str = open('preamble.txt', 'r', encoding='utf-8').read()
+preamble: str = open('preamble2.txt', 'r', encoding='utf-8').read()
 
 # テキスト文字列をchunk_sizeで指定した大きさに分割し、リストに格納する https://note.com/el_el_san/n/n845c0efdfc4a
 def split_text(text, chunk_size=1500):
@@ -69,9 +69,23 @@ async def check_time():
             emoticons = f.readlines()
         emoticon = random.choice(emoticons).strip()
         await send_message('今日も一日お疲れ様！' + emoticon)
+    # 60分の1の確率で独り言
+    if random.randint(1,60) == 1:
+        content = f'現在時刻は{now.hour}:{now.minute}です。あなたはなんとなく独り言を呟きたくなりました。あなたらしい独り言を呟いてください。独り言なので、意味のない鳴き声でも構いません。「すや」が言いそうな、自然な独り言を呟いてください。'
+        content = preamble + '\n' + content
+        res = co.chat(
+            message=content,
+            model="command-a-03-2025",
+        )
+        splitted_text = split_text(res.text,chunk_size=50)
+        for chunk in splitted_text:
+            await send_message(chunk, message.channel.id)
+
 
 @client.event
 async def on_message(message: discord.Message):
+    global history, channels
+
     if message.author == client.user:
         return
     if message.channel.id not in channels:
@@ -83,17 +97,25 @@ async def on_message(message: discord.Message):
         content = message.content[len(client.user.id)+1:]
     else:
         return
-    res = co.chat(
-        message=f'name:{message.author.name},id:{message.author.id}\n{content}',
-        model="command-r-08-2024",
-        preamble=preamble,
-        chat_history=history
-    )
+    debug(f"Got message : {content}")
+    content = f'あなたに話しかけた人の名前は「{message.author.name}」です。[]内のメッセージに対し、あなたらしい適切な返答をしてください。[{content}]'
+    content = preamble + '\n' + content
+    if len(history) > 0:
+        res = co.chat(
+            message=content,
+            model="command-a-03-2025",
+            chat_history=history
+        )
+    else:
+        res = co.chat(
+            message=content,
+            model="command-a-03-2025",
+        )
     splitted_text = split_text(res.text)
     for chunk in splitted_text:
         await send_message(chunk, message.channel.id)
-    history.append(UserMessage(message=content))
-    history.append(ChatbotMessage(message=res.text))
+    history = res.chat_history
+    print(history[len(history)-1])
     with open('history.pkl', 'wb') as f:
         pickle.dump(history, f)
 
@@ -108,11 +130,22 @@ async def on_ready():
     await tree.sync()
     debug('Command tree synced.')
     check_time.start()
+    await send_message("すやぼっとが来たよ！")
 
 if __name__ == "__main__":
-    with open('history.pkl', 'br') as f:
-        history = pickle.load(f)
-    with open('channels.pkl', 'br') as f:
-        channels = pickle.load(f)
+    try:
+        with open('history.pkl', 'rb') as f:
+            history = pickle.load(f)
+            print('history loaded')
+    except Exception:
+        history = []
+        print('failed to load history')
+
+    try:
+        with open('channels.pkl', 'rb') as f:
+            channels = pickle.load(f)
+            print('channels loaded')
+    except Exception:
+        channels = []
 
     client.run(DISCORD_TOKEN)
