@@ -1,7 +1,8 @@
 from datetime import datetime, timedelta
 import pytz
 import cohere
-from Config import DISCORD_TOKEN, COHERE_TOKEN, DEBUG_CHANNEL_ID
+from cohere.errors import TooManyRequestsError
+from Config import DISCORD_TOKEN, COHERE_TOKEN, DEBUG_CHANNEL_ID, MAX_HISTORY_LENGTH
 import pickle
 import discord
 from discord import app_commands
@@ -11,7 +12,8 @@ from typing import List, Union
 import random
 
 # Cohereに関する変数
-co = cohere.Client(api_key=COHERE_TOKEN, client_name="SuyaBot")
+co = cohere.ClientV2(api_key=COHERE_TOKEN, client_name="SuyaBot")
+model = "command-r7b-12-2024"
 
 # Discordに関する変数
 intents = discord.Intents.default()
@@ -21,22 +23,28 @@ tree = app_commands.CommandTree(client)
 
 history = []
 channels: List[int] = []
-# preamble: str = open('preamble.txt', 'r', encoding='utf-8').read()
-preamble: str = open('preamble2.txt', 'r', encoding='utf-8').read()
+
+# ふるまいに関する変数
+soliloquy_error_count = 0  # 独り言にエラーが発生した場合、カウントアップ 次も独り言を呟く
 
 # テキスト文字列をchunk_sizeで指定した大きさに分割し、リストに格納する https://note.com/el_el_san/n/n845c0efdfc4a
+
+
 def split_text(text, chunk_size=1500):
-  return [text[i:i+chunk_size] for i in range(0, len(text), chunk_size)]
+    return [text[i:i+chunk_size] for i in range(0, len(text), chunk_size)]
 
 # メッセージに時刻を付け加えて出力 (デバッグ用)
+
+
 def debug(message: str):
-    content: str = datetime.now(pytz.timezone("Asia/Tokyo")).strftime("%Y-%m-%d %H:%M:%S") + ' ' + message
+    content: str = datetime.now(pytz.timezone(
+        "Asia/Tokyo")).strftime("%Y-%m-%d %H:%M:%S") + ' ' + message
     print(content)
-    
-    
 
 # 特定の、もしくは全てのチャンネルにメッセージを送信
-async def send_message(message: str, channel: Union[int,None] = None):
+
+
+async def send_message(message: str, channel: Union[int, None] = None):
     if channel is None:
         _c = 'all channels'
         for channel in channels:
@@ -48,9 +56,11 @@ async def send_message(message: str, channel: Union[int,None] = None):
     await client.get_channel(DEBUG_CHANNEL_ID).send(f"Sent message to {_c}: {message}")
 
 # チャンネルの登録・解除
+
+
 @tree.command(name='register', description='すやぼっとが返信するチャンネルを登録します。既に登録されている場合は解除します。')
 async def register(ctx: discord.Interaction):
-    res:str = ''
+    res: str = ''
     if ctx.channel.id in channels:
         channels.remove(ctx.channel.id)
         res = f'{ctx.channel.id}({ctx.channel.name}) を解除しました。'
@@ -61,25 +71,45 @@ async def register(ctx: discord.Interaction):
     with open('channels.pkl', 'wb') as f:
         pickle.dump(channels, f)
 
+
 @tasks.loop(seconds=59)
 async def check_time():
     now = datetime.now(pytz.timezone("Asia/Tokyo"))
+    # 一日の終わりのあいさつ
     if now.minute == 0 and now.hour == 0:
         with open('emoticon.txt', 'r', encoding='utf-8') as f:
             emoticons = f.readlines()
         emoticon = random.choice(emoticons).strip()
         await send_message('今日も一日お疲れ様！' + emoticon)
+
+    global history, soliloquy_error_count
     # 60分の1の確率で独り言
-    if random.randint(1,60) == 1:
+    if random.randint(1, 60) == 1 or soliloquy_error_count > 0:
         content = f'現在時刻は{now.hour}:{now.minute}です。あなたはなんとなく独り言を呟きたくなりました。あなたらしい独り言を呟いてください。独り言なので、意味のない鳴き声でも構いません。「すや」が言いそうな、自然な独り言を呟いてください。'
-        content = preamble + '\n' + content
-        res = co.chat(
-            message=content,
-            model="command-a-03-2025",
-        )
-        splitted_text = split_text(res.text,chunk_size=50)
+        history.append({"role": "user", "content": content})  # ユーザー発言を履歴に追加
+        try:
+            res = co.chat(
+            model=model,
+            messages=history,
+            temperature=0.4,
+            presence_penalty=0.3,
+            frequency_penalty=0.5
+            )
+        except Exception as e:
+            soliloquy_error_count += 1  # エラー時は次回も独り言を呟こうとする
+            if soliloquy_error_count == 1:  # 最初のエラー時のみ通知
+                if isinstance(e, TooManyRequestsError):
+                    debug("独り言に失敗しました\nTooManyRequestsError occurred.")
+                    return
+                else:
+                    debug(f"独り言に失敗しました\nError occurred: {e}")
+                    await send_message(f"なんか知らないエラー出た！\nエラー：{e}")
+                    return
+        history.pop()  # 独り言用の履歴を削除
+        splitted_text = split_text(res.message.content[0].text)
         for chunk in splitted_text:
-            await send_message(chunk, message.channel.id)
+            await send_message(chunk)
+        soliloquy_error_count = 0  # 成功したらカウントリセット
 
 
 @client.event
@@ -90,7 +120,7 @@ async def on_message(message: discord.Message):
         return
     if message.channel.id not in channels:
         return
-    content :str = ''
+    content: str = ''
     if message.content.startswith('すや、'):
         content = message.content[3:]
     elif message.content.startswith(f'<@!{client.user.id}>'):
@@ -99,25 +129,40 @@ async def on_message(message: discord.Message):
         return
     debug(f"Got message : {content}")
     content = f'あなたに話しかけた人の名前は「{message.author.name}」です。[]内のメッセージに対し、あなたらしい適切な返答をしてください。[{content}]'
-    content = preamble + '\n' + content
-    if len(history) > 0:
+    history.append({"role": "user", "content": content})  # ユーザー発言を履歴に追加
+    try:
         res = co.chat(
-            message=content,
-            model="command-a-03-2025",
-            chat_history=history
+            model=model,
+            messages=history,
+            temperature=0.4,
+            presence_penalty=0.3,
+            frequency_penalty=0.5
         )
-    else:
-        res = co.chat(
-            message=content,
-            model="command-a-03-2025",
-        )
-    splitted_text = split_text(res.text)
+    except Exception as e:
+        if isinstance(e, TooManyRequestsError):
+            await send_message("ちょっとリクエストが多すぎるよ。しばらく待ってからまた試してね。", message.channel.id)
+            debug("TooManyRequestsError occurred.")
+            return
+        else:
+            await send_message(f"知らないエラーが発生したよ。時間をおいてからまた試してね。\nエラー：{e}", message.channel.id)
+            debug(f"Error occurred: {e}")
+            return
+    # historyの更新と保存
+    history.append(
+        {"role": "assistant", "content": res.message.content[0].text})
+    # systemを残して古い履歴を削除 userとassistantのペアで削除
+    if len(history) > MAX_HISTORY_LENGTH:
+        history.pop(1)
+        history.pop(1)
+
+    # メッセージを分割し送信
+    splitted_text = split_text(res.message.content[0].text)
     for chunk in splitted_text:
         await send_message(chunk, message.channel.id)
-    history = res.chat_history
     print(history[len(history)-1])
     with open('history.pkl', 'wb') as f:
         pickle.dump(history, f)
+
 
 @client.event
 async def on_ready():
