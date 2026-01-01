@@ -2,3 +2,81 @@ nohup: ignoring input
 [2025-12-31 22:34:02] [INFO    ] discord.client: logging in using static token
 [2025-12-31 22:34:04] [INFO    ] discord.gateway: Shard ID None has connected to Gateway (Session ID: c059cc6e4efd7bb44e8327492dbbdea5).
 [2025-12-31 22:54:52] [INFO    ] discord.gateway: Shard ID None has successfully RESUMED session c059cc6e4efd7bb44e8327492dbbdea5.
+[2026-01-01 00:27:26] [ERROR   ] discord.client: Ignoring exception in on_message
+Traceback (most recent call last):
+  File "/data/data/com.termux/files/home/SuyaBot/venv/lib/python3.12/site-packages/discord/client.py", line 504, in _run_event
+    await coro(*args, **kwargs)
+  File "/data/data/com.termux/files/home/SuyaBot/Main.py", line 104, in on_message
+    res = co.chat(
+          ^^^^^^^^
+  File "/data/data/com.termux/files/home/SuyaBot/venv/lib/python3.12/site-packages/cohere/client.py", line 384, in chat
+    response = self._request(cohere.CHAT_URL, json=json_body, stream=stream)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/home/SuyaBot/venv/lib/python3.12/site-packages/cohere/client.py", line 945, in _request
+    self._check_response(json_response, response.headers, response.status_code)
+  File "/data/data/com.termux/files/home/SuyaBot/venv/lib/python3.12/site-packages/cohere/client.py", line 887, in _check_response
+    raise CohereAPIError(
+cohere.error.CohereAPIError: Please wait and try again later
+[2026-01-01 00:34:06] [ERROR   ] discord.ext.tasks: Unhandled exception in internal background task 'check_time'.
+Traceback (most recent call last):
+  File "/data/data/com.termux/files/home/SuyaBot/venv/lib/python3.12/site-packages/discord/ext/tasks/__init__.py", line 246, in _loop
+    await self.coro(*args, **kwargs)
+  File "/data/data/com.termux/files/home/SuyaBot/Main.py", line 82, in check_time
+    await send_message(chunk, message.channel.id)
+                              ^^^^^^^
+NameError: name 'message' is not defined. Did you mean: 'on_message'?
+[2026-01-01 01:49:57] [INFO    ] discord.gateway: Shard ID None has successfully RESUMED session c059cc6e4efd7bb44e8327492dbbdea5.
+[2026-01-01 03:23:51] [INFO    ] discord.gateway: Shard ID None has successfully RESUMED session c059cc6e4efd7bb44e8327492dbbdea5.
+[2026-01-01 03:52:29] [INFO    ] discord.gateway: Shard ID None has successfully RESUMED session c059cc6e4efd7bb44e8327492dbbdea5.
+[2026-01-01 06:10:17] [INFO    ] discord.gateway: Shard ID None has successfully RESUMED session c059cc6e4efd7bb44e8327492dbbdea5.
+[2026-01-01 07:36:37] [INFO    ] discord.gateway: Shard ID None has successfully RESUMED session c059cc6e4efd7bb44e8327492dbbdea5.
+[2026-01-01 09:14:26] [INFO    ] discord.gateway: Shard ID None has successfully RESUMED session c059cc6e4efd7bb44e8327492dbbdea5.
+[2026-01-01 11:27:55] [INFO    ] discord.gateway: Shard ID None has successfully RESUMED session c059cc6e4efd7bb44e8327492dbbdea5.
+[2026-01-01 14:31:10] [ERROR   ] discord.client: Ignoring exception in on_message
+Traceback (most recent call last):
+  File "/data/data/com.termux/files/home/SuyaBot/venv/lib/python3.12/site-packages/discord/client.py", line 504, in _run_event
+    await coro(*args, **kwargs)
+  File "/data/data/com.termux/files/home/SuyaBot/Main.py", line 104, in on_message
+    res = co.chat(
+          ^^^^^^^^
+  File "/data/data/com.termux/files/home/SuyaBot/venv/lib/python3.12/site-packages/cohere/client.py", line 384, in chat
+    response = self._request(cohere.CHAT_URL, json=json_body, stream=stream)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/home/SuyaBot/venv/lib/python3.12/site-packages/cohere/client.py", line 945, in _request
+    self._check_response(json_response, response.headers, response.status_code)
+  File "/data/data/com.termux/files/home/SuyaBot/venv/lib/python3.12/site-packages/cohere/client.py", line 887, in _check_response
+    raise CohereAPIError(
+cohere.error.CohereAPIError: Please wait and try again later
+[2026-01-01 15:26:44] [INFO    ] discord.gateway: Shard ID None has successfully RESUMED session c059cc6e4efd7bb44e8327492dbbdea5.
+[2026-01-01 16:31:44] [INFO    ] discord.gateway: Shard ID None has successfully RESUMED session c059cc6e4efd7bb44e8327492dbbdea5.
+[2026-01-01 17:16:54] [ERROR   ] discord.client: Ignoring exception in on_message
+Traceback (most recent call last):
+  File "/data/data/com.termux/files/home/SuyaBot/venv/lib/python3.12/site-packages/discord/client.py", line 504, in _run_event
+    await coro(*args, **kwargs)
+  File "/data/data/com.termux/files/home/SuyaBot/Main.py", line 104, in on_message
+    res = co.chat(
+          ^^^^^^^^
+  File "/data/data/com.termux/files/home/SuyaBot/venv/lib/python3.12/site-packages/cohere/client.py", line 384, in chat
+    response = self._request(cohere.CHAT_URL, json=json_body, stream=stream)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/home/SuyaBot/venv/lib/python3.12/site-packages/cohere/client.py", line 945, in _request
+    self._check_response(json_response, response.headers, response.status_code)
+  File "/data/data/com.termux/files/home/SuyaBot/venv/lib/python3.12/site-packages/cohere/client.py", line 887, in _check_response
+    raise CohereAPIError(
+cohere.error.CohereAPIError: Please wait and try again later
+[2026-01-01 18:13:37] [INFO    ] discord.gateway: Shard ID None has successfully RESUMED session c059cc6e4efd7bb44e8327492dbbdea5.
+[2026-01-01 18:43:51] [ERROR   ] discord.client: Ignoring exception in on_message
+Traceback (most recent call last):
+  File "/data/data/com.termux/files/home/SuyaBot/venv/lib/python3.12/site-packages/discord/client.py", line 504, in _run_event
+    await coro(*args, **kwargs)
+  File "/data/data/com.termux/files/home/SuyaBot/Main.py", line 104, in on_message
+    res = co.chat(
+          ^^^^^^^^
+  File "/data/data/com.termux/files/home/SuyaBot/venv/lib/python3.12/site-packages/cohere/client.py", line 384, in chat
+    response = self._request(cohere.CHAT_URL, json=json_body, stream=stream)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/home/SuyaBot/venv/lib/python3.12/site-packages/cohere/client.py", line 945, in _request
+    self._check_response(json_response, response.headers, response.status_code)
+  File "/data/data/com.termux/files/home/SuyaBot/venv/lib/python3.12/site-packages/cohere/client.py", line 887, in _check_response
+    raise CohereAPIError(
+cohere.error.CohereAPIError: Please wait and try again later
